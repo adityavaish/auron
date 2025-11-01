@@ -23,7 +23,8 @@ import org.apache.spark.sql.catalyst.expressions.ExprId
 import org.apache.spark.sql.catalyst.expressions.NamedExpression
 import org.apache.spark.sql.catalyst.expressions.aggregate.AggregateExpression
 import org.apache.spark.sql.catalyst.expressions.aggregate.Final
-import org.apache.spark.sql.execution.SparkPlan
+import org.apache.spark.sql.catalyst.plans.physical.Distribution
+import org.apache.spark.sql.execution.{SparkPlan, WithKeyedUnaryExecNode}
 import org.apache.spark.sql.execution.aggregate.BaseAggregateExec
 import org.apache.spark.sql.execution.auron.plan.NativeAggBase.AggExecMode
 import org.apache.spark.sql.types.BinaryType
@@ -79,4 +80,11 @@ case class NativeAggExec(
   @sparkver("3.0 / 3.1")
   override def withNewChildren(newChildren: Seq[SparkPlan]): SparkPlan =
     copy(child = newChildren.head)
+
+  @sparkver("3.2 / 3.3 / 3.4 / 3.5")
+  override def withNewReqdChildDistribution(dist: Distribution): WithKeyedUnaryExecNode = {
+    val newNode = copy()
+    newNode.reqChildDistribution = Some(dist)
+    newNode
+  }
 }

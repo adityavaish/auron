@@ -94,7 +94,7 @@ abstract class NativeAggBase(
       "merging_time" -> SQLMetrics.createNanoTimingMetric(sparkContext, "Native.merging_time")) ++
     Map("output_time" -> SQLMetrics.createNanoTimingMetric(sparkContext, "Native.output_time"))
 
-  override def requiredChildDistribution: List[Distribution] = {
+  override def requiredChildDistribution: Seq[Distribution] = {
     requiredChildDistributionExpressions match {
       case Some(exprs) if exprs.isEmpty => AllTuples :: Nil
       case Some(exprs) => ClusteredDistribution(exprs) :: Nil

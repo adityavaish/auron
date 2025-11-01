@@ -18,6 +18,7 @@ package org.apache.spark.sql.execution.joins.auron.plan
 
 import org.apache.spark.sql.catalyst.expressions.Expression
 import org.apache.spark.sql.catalyst.plans.JoinType
+import org.apache.spark.sql.catalyst.plans.physical.Distribution
 import org.apache.spark.sql.execution.SparkPlan
 import org.apache.spark.sql.execution.auron.plan.NativeSortMergeJoinBase
 
@@ -66,6 +67,14 @@ case object NativeSortMergeJoinExecProvider {
           newLeft: SparkPlan,
           newRight: SparkPlan): SparkPlan =
         copy(left = newLeft, right = newRight)
+
+      override def withNewReqdChildDistribution(
+          leftDist: Distribution,
+          rightDist: Distribution): org.apache.spark.sql.execution.joins.ShuffledJoin = {
+        val newNode = copy()
+        newNode.reqChildDistribution = Some(Seq(leftDist, rightDist))
+        newNode
+      }
 
       override def nodeName: String =
         "NativeSortMergeJoin" + (if (skewJoin) "(skew=true)" else "")

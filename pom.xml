@@ -260,6 +260,19 @@
     </dependency>
   </dependencies>
 
+  <repositories>
+    <repository>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+      <id>sc.cspayments.macc-PublicPackages</id>
+      <url>https://microsoft.pkgs.visualstudio.com/e8efa521-db8e-4531-9cd8-6923807c7e83/_packaging/sc.cspayments.macc-PublicPackages/maven/v1</url>
+    </repository>
+  </repositories>
+
   <build>
     <plugins>
       <!-- compile java -->
@@ -622,7 +635,7 @@
         <shimName>spark-3.5</shimName>
         <shimPkg>spark-extension-shims-spark</shimPkg>
         <scalaTestVersion>3.2.9</scalaTestVersion>
-        <sparkVersion>3.5.7</sparkVersion>
+        <sparkVersion>3.5.5.5.4.20250914.2</sparkVersion>
         <shortSparkVersion>3.5</shortSparkVersion>
       </properties>
     </profile>

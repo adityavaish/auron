@@ -56,10 +56,15 @@ public class AuronCallNativeWrapper {
 
     // initialize native environment
     static {
-        LOG.info("Initializing native environment (batchSize="
-                + AuronAdaptor.getInstance().getAuronConfiguration().get(AuronConfiguration.BATCH_SIZE) + ", "
-                + "memoryFraction="
-                + AuronAdaptor.getInstance().getAuronConfiguration().get(AuronConfiguration.MEMORY_FRACTION) + ")");
+        AuronAdaptor adaptor = AuronAdaptor.getInstance();
+        if (adaptor != null) {
+            LOG.info("Initializing native environment (batchSize="
+                    + adaptor.getAuronConfiguration().get(AuronConfiguration.BATCH_SIZE) + ", "
+                    + "memoryFraction="
+                    + adaptor.getAuronConfiguration().get(AuronConfiguration.MEMORY_FRACTION) + ")");
+        } else {
+            LOG.warn("AuronAdaptor not initialized yet, will initialize on first use");
+        }
 
         // arrow configuration
         System.setProperty("arrow.struct.conflict.policy", "CONFLICT_APPEND");
@@ -71,8 +76,10 @@ public class AuronCallNativeWrapper {
             throw new RuntimeException("Cannot load JniBridge class", e);
         }
 
-        AuronAdaptor.getInstance().loadAuronLib();
-        Runtime.getRuntime().addShutdownHook(new Thread(JniBridge::onExit));
+        if (adaptor != null) {
+            adaptor.loadAuronLib();
+            Runtime.getRuntime().addShutdownHook(new Thread(JniBridge::onExit));
+        }
     }
 
     public AuronCallNativeWrapper(
@@ -90,11 +97,24 @@ public class AuronCallNativeWrapper {
         this.stageId = stageId;
         this.taskId = taskId;
 
+        // Ensure adaptor is initialized before use
+        AuronAdaptor adaptor = AuronAdaptor.getInstance();
+        if (adaptor == null) {
+            throw new IllegalStateException(
+                    "AuronAdaptor not initialized. Make sure to call AuronAdaptor.initInstance() "
+                            + "before creating AuronCallNativeWrapper instances.");
+        }
+
+        // Load native library if not already loaded
+        try {
+            adaptor.loadAuronLib();
+        } catch (Exception e) {
+            LOG.debug("Native library already loaded or load failed", e);
+        }
+
         LOG.warn("Start executing native plan");
         this.nativeRuntimePtr = JniBridge.callNative(
-                nativeMemory,
-                AuronAdaptor.getInstance().getAuronConfiguration().get(AuronConfiguration.NATIVE_LOG_LEVEL),
-                this);
+                nativeMemory, adaptor.getAuronConfiguration().get(AuronConfiguration.NATIVE_LOG_LEVEL), this);
     }
 
     /**

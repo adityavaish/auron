@@ -93,6 +93,13 @@ object NativeHelper extends Logging {
       partition: Partition,
       context: Option[TaskContext]): Iterator[InternalRow] = {
 
+    // Ensure AuronAdaptor is initialized before creating the wrapper
+    // This triggers Shims.get which calls AuronAdaptor.initInstance()
+    if (org.apache.auron.jni.AuronAdaptor.getInstance() == null) {
+      // Force initialization through Shims
+      Shims.get
+    }
+
     if (partition.index == 0 && metrics != null && context.nonEmpty) {
       metrics.foreach(_.add("stage_id", context.get.stageId()))
     }
